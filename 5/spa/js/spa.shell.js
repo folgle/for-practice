@@ -10,6 +10,8 @@
 */
 /*global $, spa */
 spa.shell = (function() {
+  'use strict';
+
   // ------- モジュールスコープ変数開始 -------
   var configMap = {
     anchor_schema_map: {
@@ -17,9 +19,11 @@ spa.shell = (function() {
     },
     main_html: String()
       + '<div class="spa-shell-head">'
-        + '<div class="spa-shell-head-logo"></div>'
+        + '<div class="spa-shell-head-logo">'
+          + '<h1>SPA</h1>'
+          + '<p>javascript end to end</p>'
+        + '</div>'
         + '<div class="spa-shell-head-acct"></div>'
-        + '<div class="spa-shell-head-search"></div>'
       + '</div>'
       + '<div class="spa-shell-main">'
         + '<div class="spa-shell-main-nav"></div>'
@@ -44,6 +48,7 @@ spa.shell = (function() {
 
   copyAnchorMap, setJqueryMap,
   changeAnchorPart, onHashchange, onResize,
+  onTapAcct, onLogin, onLogout,
   setChatAnchor, initModule;
   // ------- モジュールスコープ変数終了 -------
 
@@ -62,7 +67,8 @@ spa.shell = (function() {
 
     jqueryMap = {
       $container: $container,
-      $chat: $container.find( '.spa-shell-chat' )
+      $acct: $container.find('.spa-shell-head-acct'),
+      $nav: $container.find('.spa-shell-main-nav')
     };
   };
   // DOMメソッド/setJqueryMap/終了
@@ -127,7 +133,7 @@ spa.shell = (function() {
       // URIの更新終了
 
       return bool_return;
-  } ;
+  };
   // DOMメソッド/changeAnchorPart/終了
   // ------- DOMメソッド終了 -------
 
@@ -198,15 +204,6 @@ spa.shell = (function() {
   };
   // イベントハンドラ/onHashchange/終了
 
-  // イベントハンドラ/onClickChat/開始
-  onClickChat = function( event ) {
-    changeAnchorPart({
-      chat: (stateMap.is_chat_retracted ? 'open' : 'closed')
-    });
-    return false;
-  };
-  // イベントハンドラ/onClickChat/終了
-
   // イベントハンドラ/onResize/開始
   onResize = function() {
     if( stateMap.resize_idto ) { return true; }
@@ -220,6 +217,35 @@ spa.shell = (function() {
     return true;
   };
   // イベントハンドラ/onResize/終了
+
+  // イベントハンドラ/onTapAcct/開始
+  onTapAcct = function( event ) {
+    var acct_text, user_name, user = spa.model.people.get_user();
+    if( user.get_is_anon() ) {
+      user_name = prompt( 'Please sign-in' );
+      spa.model.people.login( user_name );
+      jqueryMap.$acct.text( '... processing ...' );
+    }
+    else {
+      spa.model.people.logout();
+    }
+    return false;
+  };
+  // イベントハンドラ/onTapAcct/終了
+
+  // イベントハンドラ/onLogin/開始
+  onLogin = function( event, login_user ) {
+    jqueryMap.$acct.text( login_user.name );
+  };
+  // イベントハンドラ/onLogin/終了
+
+  // イベントハンドラ/onLogout/開始
+  onLogout = function( event, logout_user ) {
+    jqueryMap.$acct.text( 'please sign-in' );
+  };
+  // イベントハンドラ/onLogout/終了
+
+
   // ------- イベントハンドラ終了 -------
 
   // ------- コールバック開始 -------
@@ -282,8 +308,16 @@ spa.shell = (function() {
       .bind( 'resize', onResize )
       .bind( 'hashchange', onHashchange)
       .trigger( 'hashchange');
+
+    $.gevent.subscribe( $container, 'spa-login', onLogin );
+    $.gevent.subscribe( $container, 'spa-logout', onLogout );
+
+    jqueryMap.$acct
+      .text( 'Please sign-in' )
+      .bind( 'utap', onTapAcct );
   };
   // パブリックメソッド/initModule/終了
+
   return { initModule: initModule};
   // ------- パブリックメソッド終了 -------
 
