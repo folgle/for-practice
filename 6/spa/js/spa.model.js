@@ -18,8 +18,9 @@ spa.model = (function(){
     configMap = { anon_id: 'a0' },
     stateMap = {
       anon_user: null,
-      people_cid_map: {},
       cid_serial: 0,
+      is_connected: false,
+      people_cid_map: {},
       people_db: TAFFY(),
       user: null
     },
@@ -27,7 +28,7 @@ spa.model = (function(){
     isFakeData = true,
 
     personProto, makeCid, clearPeopleDb, completeLogin,
-    makePerson, removePerson, people, initModule;
+    makePerson, removePerson, people, chat, initModule;
 
 // peopleオブジェクトAPI
 // --------------------
@@ -194,35 +195,9 @@ spa.model = (function(){
     };
   }());
 
-  initModule = function() {
-    var i, people_list, person_map;
-
-    // 著名ユーザを初期化する
-    stateMap.anon_user = makePerson({
-      cid: configMap.anon_id,
-      id: configMap.anon_id,
-      name: 'anonymous'
-    });
-    stateMap.user = stateMap.anon_user;
-
-    if( isFakeData ) {
-      people_list = spa.fake.getPeopleList();
-      for( i = 0; i < people_list.length; i++ ) {
-        person_map = people_list[ i ];
-        makePerson({
-          cid: person_map._id,
-          css_map: person_map.css_map,
-          id: person_map._id,
-          name: person_map.name
-        });
-      }
-    }
-  };
-
-
   // chatオブジェクトAPI
   // --------------------
-  // chatオブジェクトはspa.model.chatえ利用できる。
+  // chatオブジェクトはspa.model.chatで利用できる。
   // chatオブジェクトはチャットメッセージングを管理するためのメソッドとイベントを
   // 提供する。chatオブジェクトのパブリックメソッドには以下が含まれる。
   //   * join() - チャットルームに参加する。このルーチンは、
@@ -253,7 +228,7 @@ spa.model = (function(){
   //   * spa-listchange - これはオンラインユーザのリスト長が変わったとき
   //     （ユーザがチャットに参加または退出したとき）、
   //     または内容が変わったとき（ユーザのアバター詳細が変わったとき）に発行される。
-  //     このイベントへの登録者は、更新でーたとしてpeopleもでるからpeople_dbを取得すべき。
+  //     このイベントへの登録者は、更新データとしてpeopleモデルからpeople_dbを取得すべき。
   //   * spa-updatechat - これは新しいメッセージを送受信したときに発行される。
   //     以下の形式のマップをデータとして提供する。
   //     { dest_id: <chatee_id>,
@@ -262,9 +237,96 @@ spa.model = (function(){
   //       msg_text: <message_content>
   //     }
   //
+  chat = (function() {
+    var
+      _publish_listchange,
+      _update_list, _leave_chat, join_chat;
 
+    // 内部メソッド開始
+    _update_list = function( arg_list ) {
+      var i, person_map, make_person_map,
+        people_list = arg_list[ 0 ];
+
+      clearPeopleDb();
+
+      PERSON:
+      for( i = 0; i < people_list.length; i++ ) {
+        person_map = people_list[ i ];
+
+        if( !person_map.name ) {
+          continue PERSON;
+        }
+
+        // ユーザを特定したら、css_mapを更新して残りを飛ばす
+        if( stateMap.user && stateMap.user.id === person_map.id ) {
+          stateMap.user.css_map = person_map.css_map;
+          continue PERSON;
+        }
+
+        make_person_map = {
+          cid: person_map._id,
+          css_map: person_map.css_map,
+          id: person_map._id,
+          name: person_map.name
+        };
+        makePerson( make_person_map );
+      }
+
+      stateMap.people_db.sort( 'name' );
+    };
+
+    _publish_listchange = function( arg_list ) {
+      _update_list( arg_list );
+      $.gevent.publish( 'spa-listchange', [ arg_list ] );
+    };
+    // 内部メソッド終了
+
+    _leave_chat = function() {
+      var sio = isFakeData ? spa.fake.mockSio : spa.data.getSio();
+      stateMap.is_connected = false;
+      if( sio ) {
+        sio.emit( 'leavechat' );
+      }
+    };
+
+    join_chat = function() {
+      var sio;
+
+      if( stateMap.is_connected ) {
+        return false;
+      }
+
+      if( stateMap.user.get_is_anon() ) {
+        console.warn( 'User must be defined before joining chat' );
+        return false;
+      }
+
+      sio = isFakeData ? spa.fake.mockSio : spa.data.getSio();
+      sio.on( 'listchange', _publish_listchange );
+      stateMap.is_connected = true;
+      return true;
+    };
+
+    return {
+      _leave: _leave_chat,
+      join: join_chat
+    };
+  }());
+
+  initModule = function() {
+    var i, people_list, person_map;
+
+    // 著名ユーザを初期化する
+    stateMap.anon_user = makePerson({
+      cid: configMap.anon_id,
+      id: configMap.anon_id,
+      name: 'anonymous'
+    });
+    stateMap.user = stateMap.anon_user;
+  };
   return {
     initModule: initModule,
+    chat: chat,
     people: people
   }
 
