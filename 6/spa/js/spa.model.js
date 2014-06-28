@@ -264,7 +264,7 @@ spa.model = (function(){
         }
 
         // ユーザを特定したら、css_mapを更新して残りを飛ばす
-        if( stateMap.user && stateMap.user.id === person_map.id ) {
+        if( stateMap.user && stateMap.user.id === person_map._id ) {
           stateMap.user.css_map = person_map.css_map;
           continue PERSON;
         }
@@ -275,6 +275,7 @@ spa.model = (function(){
           id: person_map._id,
           name: person_map.name
         };
+
         person = makePerson( make_person_map );
 
         if( chatee && chatee.id === make_person_map.id ) {
@@ -282,10 +283,11 @@ spa.model = (function(){
           chatee = person;
         }
 
-        makePerson( make_person_map );
+        // makePerson( make_person_map );
       }
 
       stateMap.people_db.sort( 'name' );
+
       // チャット相手がオンラインでなくなっている場合は、チャット相手を解除する。
       // その結果、「spa-setchatee」グローバルイベントが発行される。
       if( chatee && !is_chatee_online ) {
@@ -425,6 +427,6 @@ spa.model = (function(){
     initModule: initModule,
     chat: chat,
     people: people
-  }
+  };
 
 }());
