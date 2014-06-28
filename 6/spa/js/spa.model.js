@@ -183,7 +183,6 @@ spa.model = (function(){
       clearPeopleDb();
 
       $.gevent.publish( 'spa-logout', [ user ]);
-      
     };
 
     return {
