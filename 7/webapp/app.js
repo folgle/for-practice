@@ -22,6 +22,7 @@ var
   bodyParser = require( 'body-parser' ),
   methodOverride = require( 'method-override' ),
   errorhandler = require( 'errorhandler' ),
+  basicAuth = require( 'basic-auth-connect'),
   routes = require( './routes' ),
 
   app = express(),
@@ -32,6 +33,7 @@ var
 // all environments
 app.use( bodyParser() );
 app.use( methodOverride( 'X-HTTP-Method-Override' ) );
+app.use( basicAuth( 'user', 'spa' ) );
 app.use( express.static( __dirname + '/public' ) );
 
 env = app.get( 'env' ) || 'development'
