@@ -15,6 +15,7 @@ white: true
 'use strict';
 
 var
+  env,
   http = require( 'http' ),
   express = require( 'express' ),
   morgan = require( 'morgan' ),
@@ -31,20 +32,23 @@ var
 // all environments
 app.use( bodyParser() );
 app.use( methodOverride( 'X-HTTP-Method-Override' ) );
+app.use( express.static( __dirname + '/public' ) );
+
+env = app.get( 'env' ) || 'development'
 
 // development
-if( 'development' == app.get( 'env' ) ) {
+if( 'development' == env ) {
   app.use( morgan() );
   app.use( errorhandler() )
 }
 
 //production
-if( 'production' == app.get( 'env' ) ) {
+if( 'production' == env ) {
   app.use( errorhandler() );
 }
 
 app.get( '/', function( request, response ) {
-  response.send( 'Hello Express' );
+  response.redirect( '/spa.html' );
 });
 // ------------ サーバ構成終了 ------------
 
