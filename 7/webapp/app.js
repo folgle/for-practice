@@ -1,5 +1,5 @@
 /*
- * app.js - ロギングを備えた簡単なExpressサーバ
+ * app.js - 汎用ルーティングを備えたExpressサーバ
 */
 
 /*jslint      node: true,    continue: true,
@@ -22,11 +22,11 @@ var
   bodyParser = require( 'body-parser' ),
   methodOverride = require( 'method-override' ),
   errorhandler = require( 'errorhandler' ),
+  routes = require( './routes' ),
 
   app = express(),
   server = http.createServer( app );
 // ------------ モジュールスコープ変数終了 ------------
-
 
 // ------------ サーバ構成開始 ------------
 // all environments
@@ -47,9 +47,7 @@ if( 'production' == env ) {
   app.use( errorhandler() );
 }
 
-app.get( '/', function( request, response ) {
-  response.redirect( '/spa.html' );
-});
+routes.configRoutes( app, server );
 // ------------ サーバ構成終了 ------------
 
 
