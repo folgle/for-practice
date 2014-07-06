@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<!-- socket.html - 動的JSローディングの例 -->
+<html>
+<head>
+    <meta charset="utf-8"/>
+    <script src="public/js/lib/jquery/jquery-2.1.1.js"></script>
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="/js/data.js"></script>
+    <script>
+      $(function () {
+        $( 'body' ).html( b );
+      });
+      io.connect( 'http://localhost' ).on( 'script', function( path ) {
+        $( '#script_a' ).remove();
+        $( 'head' ).append(
+          '<script id="script_a" src="'
+          + path
+          + '"></scr' + 'ipt>'
+        );
+        $( 'body' ).html( b );
+      });
+    </script>
+</head>
+<body>
+    loading...
+</body>
+</html>
