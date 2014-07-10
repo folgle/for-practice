@@ -8,8 +8,8 @@
         "body-parser": "*",
         "method-override": "*",
         "errorhandler": "*",
-        "basic-auth-connect": "*",
         "socket.io": "*",
-        "socket.io-client": "*"
+        "socket.io-client": "*",
+        "mongodb": "*"
     }
 }
