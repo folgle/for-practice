@@ -22,7 +22,7 @@ var
   bodyParser = require( 'body-parser' ),
   methodOverride = require( 'method-override' ),
   errorhandler = require( 'errorhandler' ),
-  routes = require( './routes' ),
+  routes = require( './lib/routes' ),
 
   app = express(),
   server = http.createServer( app );
@@ -30,7 +30,8 @@ var
 
 // ------------ サーバ構成開始 ------------
 // all environments
-app.use( bodyParser() );
+app.use( bodyParser.urlencoded({ "extended": true }) );
+app.use( bodyParser.json() );
 app.use( methodOverride( 'X-HTTP-Method-Override' ) );
 app.use( express.static( __dirname + '/public' ) );
 
