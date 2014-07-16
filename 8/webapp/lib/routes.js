@@ -16,6 +16,7 @@ white: true
 var
   configRoutes,
   crud = require( './crud' ),
+  chat = require( './chat' ),
   makeMongoId = crud.makeMongoId;
 // ------------ モジュールスコープ変数終了 ------------
 
@@ -28,14 +29,7 @@ configRoutes = function( app, server ) {
 
   app.all( '/:obj_type/*?', function( request, response, next ) {
     response.contentType( 'json' );
-    if( objTypeMap[ request.params.obj_type ] ) {
-      next();
-    }
-    else {
-      response.send( { error_msg: request.params.obj_type
-        + ' is not a  valid object type'
-      } );
-    }
+    next();
   });
 
   app.get( '/:obj_type/list', function( request, response ) {
@@ -89,7 +83,8 @@ configRoutes = function( app, server ) {
       }
     );
   });
-}
+  chat.connect( server );
+};
 
 module.exports = { configRoutes: configRoutes };
 // ------------ パブリックメソッド終了 ------------
