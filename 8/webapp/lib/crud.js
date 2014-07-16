@@ -82,7 +82,7 @@ constructObj = function( obj_type, obj_map, callback ) {
   checkSchema(
     obj_type, obj_map,
     function( error_list ) {
-      if( error_list === 0 ) {
+      if( error_list.length === 0 ) {
         dbHandle.collection(
           obj_type,
           function( outer_error, collection ) {
